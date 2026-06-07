@@ -1,0 +1,102 @@
+networks:
+    voltcloud-net:
+        driver: bridge
+
+volumes:
+    mongo-data:
+    rustfs-data:
+
+services:
+    mongo:
+        image: mongo:7
+        restart: unless-stopped
+        ports:
+            - '27017:27017'
+        volumes:
+            - mongo-data:/data/db
+        networks:
+            - voltcloud-net
+
+    rustfs:
+        image: rustfs/rustfs:latest
+        restart: unless-stopped
+        environment:
+            RUSTFS_ROOT_USER: voltadmin
+            RUSTFS_ROOT_PASSWORD: voltadminsecret
+        ports:
+            - '9000:9000'
+        volumes:
+            - rustfs-data:/data
+        networks:
+            - voltcloud-net
+
+    rustfs-init:
+        image: minio/mc:latest
+        depends_on:
+            - rustfs
+        entrypoint: >
+            /bin/sh -c "
+            until (/usr/bin/mc alias set local http://rustfs:9000 voltadmin voltadminsecret) do echo 'waiting for rustfs'; sleep 2; done;
+            /usr/bin/mc mb --ignore-existing local/vpm-tarballs;
+            /usr/bin/mc mb --ignore-existing local/vpm-readmes;
+            /usr/bin/mc anonymous set download local/vpm-tarballs;
+            /usr/bin/mc anonymous set download local/vpm-readmes;
+            echo 'rustfs buckets ready';
+            "
+        networks:
+            - voltcloud-net
+
+    console:
+        build:
+            context: ../console.voltcloud.dev/server
+            dockerfile: Dockerfile
+        restart: unless-stopped
+        env_file:
+            - ../console.voltcloud.dev/server/.env
+        depends_on:
+            - mongo
+        ports:
+            - '8081:8081'
+        networks:
+            - voltcloud-net
+
+    console-client:
+        build:
+            context: ../console.voltcloud.dev/client
+            dockerfile: Dockerfile
+        restart: unless-stopped
+        depends_on:
+            - console
+        ports:
+            - '5181:80'
+        networks:
+            - voltcloud-net
+
+    registry:
+        build:
+            context: ./server
+            dockerfile: Dockerfile
+        restart: unless-stopped
+        env_file:
+            - ./server/.env
+        depends_on:
+            - mongo
+            - rustfs
+            - rustfs-init
+            - console
+        ports:
+            - '8082:8082'
+        networks:
+            - voltcloud-net
+
+    client:
+        build:
+            context: ./client
+            dockerfile: Dockerfile
+        restart: unless-stopped
+        depends_on:
+            - registry
+        ports:
+            - '5180:80'
+        networks:
+            - voltcloud-net

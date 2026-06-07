@@ -1,0 +1,51 @@
+.app-topbar {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    width: 100%;
+    background: transparent;
+}
+
+.app-topbar__inner {
+    width: 100%;
+    max-width: 1080px;
+    margin: 0 auto;
+    height: 64px;
+    padding: 0 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.app-topbar__brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--color-text-primary);
+    text-decoration: none;
+}
+
+.app-topbar__brand-label {
+    font-family: var(--font-sans);
+    font-weight: 600;
+    font-size: 0.9375rem;
+    letter-spacing: -0.01em;
+}
+
+.app-topbar__nav {
+    display: inline-flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.app-topbar__link {
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+    color: var(--color-text-muted);
+    text-decoration: none;
+    transition: color 0.15s ease;
+}
+
+.app-topbar__link:hover {
+    color: var(--color-text-primary);
+}

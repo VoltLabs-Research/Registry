@@ -1,0 +1,318 @@
+openapi: 3.1.0
+info:
+    title: Volt Registry API
+    version: 0.1.0
+    description: |
+        Public package registry backing registry.voltcloud.dev.
+        Phase 1: read-only. Phase 2 introduces publish and deprecate.
+servers:
+    - url: https://registry.voltcloud.dev
+    - url: http://localhost:8082
+tags:
+    - name: packages
+    - name: search
+    - name: scopes
+    - name: identity
+components:
+    securitySchemes:
+        bearer:
+            type: http
+            scheme: bearer
+            bearerFormat: JWT or PAT (vpm_pub_*)
+    schemas:
+        Error:
+            type: object
+            required: [error, message]
+            properties:
+                error: { type: string }
+                message: { type: string }
+                details: {}
+        VersionPlatform:
+            type: object
+            required: [tag, sha256, key, sizeBytes]
+            properties:
+                tag: { type: string }
+                sha256: { type: string }
+                key: { type: string }
+                sizeBytes: { type: integer }
+        VpmManifest:
+            type: object
+            required: [name, version, kind, publisher]
+            properties:
+                name: { type: string }
+                version: { type: string }
+                kind: { type: string, enum: [engine, workflow, lib] }
+                publisher: { type: string }
+                description: { type: string }
+                license: { type: string }
+                homepage: { type: string }
+                keywords:
+                    type: array
+                    items: { type: string }
+                platforms:
+                    type: array
+                    items: { type: string }
+                entrypoints:
+                    type: object
+                    properties:
+                        binary: { type: string }
+                        workflow: { type: string }
+                voltsdk: { type: string }
+                coretoolkit: { type: string }
+                files:
+                    type: array
+                    items: { type: string }
+        VersionMetadata:
+            type: object
+            required: [version, manifest, sha256, sizeBytes, publishedAt, publishedBy, platforms]
+            properties:
+                version: { type: string }
+                manifest: { $ref: '#/components/schemas/VpmManifest' }
+                sha256: { type: string }
+                sigEd25519: { type: string }
+                sizeBytes: { type: integer }
+                publishedAt: { type: string, format: date-time }
+                publishedBy: { type: string }
+                platforms:
+                    type: array
+                    items: { $ref: '#/components/schemas/VersionPlatform' }
+                deprecated:
+                    type: object
+                    properties:
+                        reason: { type: string }
+                        at: { type: string, format: date-time }
+        Packument:
+            type: object
+            required: [fullName, scope, name, kind, distTags, versions, downloads, createdAt, updatedAt]
+            properties:
+                fullName: { type: string }
+                scope: { type: string }
+                name: { type: string }
+                kind: { type: string, enum: [engine, workflow, lib] }
+                description: { type: string }
+                keywords:
+                    type: array
+                    items: { type: string }
+                homepage: { type: string }
+                repository:
+                    type: object
+                    properties:
+                        type: { type: string }
+                        url: { type: string }
+                distTags:
+                    type: object
+                    additionalProperties: { type: string }
+                versions:
+                    type: object
+                    additionalProperties: { $ref: '#/components/schemas/VersionMetadata' }
+                downloads:
+                    type: object
+                    properties:
+                        total: { type: integer }
+                        last30d: { type: integer }
+                createdAt: { type: string, format: date-time }
+                updatedAt: { type: string, format: date-time }
+        PackumentSummary:
+            type: object
+            properties:
+                fullName: { type: string }
+                scope: { type: string }
+                name: { type: string }
+                kind: { type: string }
+                description: { type: string }
+                keywords:
+                    type: array
+                    items: { type: string }
+                latest: { type: string }
+                downloads:
+                    type: object
+                    properties:
+                        total: { type: integer }
+                        last30d: { type: integer }
+                updatedAt: { type: string, format: date-time }
+paths:
+    /healthz:
+        get:
+            tags: [identity]
+            summary: Liveness probe
+            responses:
+                '200':
+                    description: ok
+    /packages/{scope}/{name}:
+        get:
+            tags: [packages]
+            summary: Get packument
+            parameters:
+                - name: scope
+                  in: path
+                  required: true
+                  schema: { type: string }
+                - name: name
+                  in: path
+                  required: true
+                  schema: { type: string }
+            responses:
+                '200':
+                    description: Packument
+                    content:
+                        application/json:
+                            schema: { $ref: '#/components/schemas/Packument' }
+                '404':
+                    description: Not found
+                    content:
+                        application/json:
+                            schema: { $ref: '#/components/schemas/Error' }
+        put:
+            tags: [packages]
+            summary: Publish (Phase 2)
+            security:
+                - bearer: []
+            responses:
+                '501':
+                    description: Not Implemented
+    /packages/{scope}/{name}/{version}:
+        get:
+            tags: [packages]
+            summary: Get specific version metadata
+            parameters:
+                - name: scope
+                  in: path
+                  required: true
+                  schema: { type: string }
+                - name: name
+                  in: path
+                  required: true
+                  schema: { type: string }
+                - name: version
+                  in: path
+                  required: true
+                  schema: { type: string }
+            responses:
+                '200':
+                    description: Version metadata
+                    content:
+                        application/json:
+                            schema: { $ref: '#/components/schemas/VersionMetadata' }
+                '404':
+                    description: Not found
+    /packages/{scope}/{name}/{version}/deprecate:
+        post:
+            tags: [packages]
+            summary: Deprecate (Phase 2)
+            security:
+                - bearer: []
+            responses:
+                '501':
+                    description: Not Implemented
+    /packages/{scope}/{name}/{version}/-/{platform}.tgz:
+        get:
+            tags: [packages]
+            summary: Redirect to signed tarball URL
+            parameters:
+                - name: scope
+                  in: path
+                  required: true
+                  schema: { type: string }
+                - name: name
+                  in: path
+                  required: true
+                  schema: { type: string }
+                - name: version
+                  in: path
+                  required: true
+                  schema: { type: string }
+                - name: platform
+                  in: path
+                  required: true
+                  schema: { type: string }
+            responses:
+                '307':
+                    description: Redirect
+                    headers:
+                        Location:
+                            schema: { type: string }
+                '404':
+                    description: Not found
+    /-/search:
+        get:
+            tags: [search]
+            summary: Search packages
+            parameters:
+                - name: q
+                  in: query
+                  schema: { type: string }
+                - name: kind
+                  in: query
+                  schema: { type: string, enum: [engine, workflow, lib] }
+                - name: page
+                  in: query
+                  schema: { type: integer, default: 1 }
+                - name: pageSize
+                  in: query
+                  schema: { type: integer, default: 20 }
+            responses:
+                '200':
+                    description: Search results
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    items:
+                                        type: array
+                                        items: { $ref: '#/components/schemas/PackumentSummary' }
+                                    page: { type: integer }
+                                    pageSize: { type: integer }
+                                    total: { type: integer }
+    /-/whoami:
+        get:
+            tags: [identity]
+            summary: Proxy to console whoami
+            security:
+                - bearer: []
+            responses:
+                '200':
+                    description: Identity payload
+    /-/scopes:
+        post:
+            tags: [scopes]
+            summary: Create a scope
+            security:
+                - bearer: []
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            required: [name]
+                            properties:
+                                name: { type: string }
+                                visibility: { type: string, enum: [public, restricted] }
+            responses:
+                '201':
+                    description: Scope created
+    /-/scopes/{scope}/members:
+        post:
+            tags: [scopes]
+            summary: Add a member to a scope
+            security:
+                - bearer: []
+            parameters:
+                - name: scope
+                  in: path
+                  required: true
+                  schema: { type: string }
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            required: [accountId, role]
+                            properties:
+                                accountId: { type: string }
+                                role: { type: string, enum: [owner, maintainer, publisher] }
+            responses:
+                '200':
+                    description: Member added
