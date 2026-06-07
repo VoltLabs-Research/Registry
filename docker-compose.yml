@@ -1,6 +1,9 @@
+name: volt-registry
+
 networks:
+    internal:
     voltcloud-net:
-        driver: bridge
+        external: true
 
 volumes:
     mongo-data:
@@ -10,12 +13,10 @@ services:
     mongo:
         image: mongo:7
         restart: unless-stopped
-        ports:
-            - '27017:27017'
         volumes:
             - mongo-data:/data/db
         networks:
-            - voltcloud-net
+            - internal
 
     rustfs:
         image: rustfs/rustfs:latest
@@ -24,11 +25,11 @@ services:
             RUSTFS_ROOT_USER: voltadmin
             RUSTFS_ROOT_PASSWORD: voltadminsecret
         ports:
-            - '9000:9000'
+            - '6090:9000'
         volumes:
             - rustfs-data:/data
         networks:
-            - voltcloud-net
+            - internal
 
     rustfs-init:
         image: minio/mc:latest
@@ -44,33 +45,7 @@ services:
             echo 'rustfs buckets ready';
             "
         networks:
-            - voltcloud-net
-
-    console:
-        build:
-            context: ../console.voltcloud.dev/server
-            dockerfile: Dockerfile
-        restart: unless-stopped
-        env_file:
-            - ../console.voltcloud.dev/server/.env
-        depends_on:
-            - mongo
-        ports:
-            - '8081:8081'
-        networks:
-            - voltcloud-net
-
-    console-client:
-        build:
-            context: ../console.voltcloud.dev/client
-            dockerfile: Dockerfile
-        restart: unless-stopped
-        depends_on:
-            - console
-        ports:
-            - '5181:80'
-        networks:
-            - voltcloud-net
+            - internal
 
     registry:
         build:
@@ -83,10 +58,10 @@ services:
             - mongo
             - rustfs
             - rustfs-init
-            - console
         ports:
-            - '8082:8082'
+            - '6085:8082'
         networks:
+            - internal
             - voltcloud-net
 
     client:
@@ -97,6 +72,6 @@ services:
         depends_on:
             - registry
         ports:
-            - '5180:80'
+            - '6080:80'
         networks:
-            - voltcloud-net
+            - internal
