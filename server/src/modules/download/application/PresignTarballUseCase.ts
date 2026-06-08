@@ -54,6 +54,8 @@ export class PresignTarballUseCase implements UseCase<PresignTarballInput, Presi
             PRESIGN_TTL_SECONDS
         );
 
+        await this.packageRepository.recordActivity(targetPackage.id, 1);
+
         return {
             url,
             sha256: platformEntry.sha256,

@@ -37,6 +37,7 @@ const packageSchema = new Schema(
         downloads: { type: downloadStatsSchema, default: () => ({ total: 0, last30d: 0 }) },
         readme: { type: String },
         activity: { type: [Number], default: undefined },
+        activityDay: { type: Number },
         firstSeen: { type: Date },
         verified: { type: Boolean }
     },

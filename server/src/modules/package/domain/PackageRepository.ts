@@ -54,4 +54,10 @@ export interface PackageRepository {
     countByKind(text: string | undefined): Promise<PackageKindCounts>;
     create(data: NewPackageData): Promise<Package>;
     update(id: string, changes: PackageUpdate): Promise<Package>;
+    /**
+     * Records one activity event for the day, rolling the daily `activity`
+     * sparkline forward, recomputing `downloads.last30d`, and adding
+     * `downloadDelta` to `downloads.total` (1 for an install, 0 for a release).
+     */
+    recordActivity(id: string, downloadDelta: number): Promise<void>;
 }

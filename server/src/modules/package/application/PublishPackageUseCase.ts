@@ -71,6 +71,8 @@ export class PublishPackageUseCase implements UseCase<PublishPackageInput, Packu
 
         await this.refreshPackageMetadata(targetPackage, manifest, input.readme);
 
+        await this.packageRepository.recordActivity(targetPackage.id, 0);
+
         return this.buildPackument(fullName);
     }
 

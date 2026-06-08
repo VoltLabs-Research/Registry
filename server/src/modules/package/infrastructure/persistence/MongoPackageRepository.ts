@@ -77,6 +77,58 @@ export class MongoPackageRepository implements PackageRepository {
         return this.mapper.toDomain(updated);
     }
 
+    async recordActivity(id: string, downloadDelta: number): Promise<void> {
+        const window = 30;
+        const today = Math.floor(Date.now() / 86_400_000);
+        await PackageModel.updateOne({ _id: id }, [
+            {
+                $set: {
+                    activity: {
+                        $let: {
+                            vars: {
+                                a: { $ifNull: ['$activity', [0]] },
+                                gap: {
+                                    $min: [
+                                        window,
+                                        { $max: [0, { $subtract: [today, { $ifNull: ['$activityDay', today] }] }] }
+                                    ]
+                                }
+                            },
+                            in: {
+                                $slice: [
+                                    {
+                                        $concatArrays: [
+                                            '$$a',
+                                            { $map: { input: { $range: [0, '$$gap'] }, in: 0 } }
+                                        ]
+                                    },
+                                    -window
+                                ]
+                            }
+                        }
+                    },
+                    activityDay: today
+                }
+            },
+            {
+                $set: {
+                    activity: {
+                        $concatArrays: [
+                            { $slice: ['$activity', { $subtract: [{ $size: '$activity' }, 1] }] },
+                            [{ $add: [{ $arrayElemAt: ['$activity', -1] }, 1] }]
+                        ]
+                    }
+                }
+            },
+            {
+                $set: {
+                    'downloads.total': { $add: [{ $ifNull: ['$downloads.total', 0] }, downloadDelta] },
+                    'downloads.last30d': { $sum: '$activity' }
+                }
+            }
+        ]).exec();
+    }
+
     private buildFilter(text: string | undefined, kind: string | undefined): FilterQuery<PackageDocument> {
         const filter: FilterQuery<PackageDocument> = {};
 
