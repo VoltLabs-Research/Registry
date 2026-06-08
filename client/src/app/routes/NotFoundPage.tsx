@@ -1,7 +1,4 @@
-import Heading from '@/shared/presentation/primitives/Heading';
-import Text from '@/shared/presentation/primitives/Text';
-import Stack from '@/shared/presentation/primitives/Stack';
-import Button from '@/shared/presentation/primitives/Button';
+import { Heading, Text, Stack, Button } from '@voltstack/bravais';
 import { usePageTitle } from '@/shared/presentation/hooks/use-page-title';
 
 const NotFoundPage = () => {

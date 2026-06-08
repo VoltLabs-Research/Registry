@@ -1,9 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, BadgeCheck } from 'lucide-react';
-import Sparkline from '@/shared/presentation/primitives/Sparkline';
-import Skeleton from '@/shared/presentation/primitives/Skeleton';
-import EmptyState from '@/shared/presentation/primitives/EmptyState';
+import { Sparkline, Skeleton, EmptyState } from '@voltstack/bravais';
 import { useSearchPackagesQuery } from '@/modules/package/hooks/queries';
 import { compactNumber } from '@/shared/utils/format';
 import type { PackumentSummary } from '@/modules/package/api/entities/package/package';
@@ -136,7 +134,7 @@ const PackagesListing = () => {
                                 <span className='packages-listing__path'>{row.fullName}</span>
                             </span>
                             <span className='packages-listing__col packages-listing__col--activity' role='cell'>
-                                <Sparkline points={row.activity} width={120} height={28} />
+                                <Sparkline color='var(--color-text-secondary)' values={row.activity} width={120} height={28} />
                             </span>
                             <span className='packages-listing__col packages-listing__col--installs' role='cell'>
                                 {row.verified && (

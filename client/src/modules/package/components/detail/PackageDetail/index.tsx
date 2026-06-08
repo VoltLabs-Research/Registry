@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { BadgeCheck } from 'lucide-react';
-import Sparkline from '@/shared/presentation/primitives/Sparkline';
+import { Sparkline } from '@voltstack/bravais';
 import MarkdownView from '@/shared/presentation/components/MarkdownView';
 import { compactNumber, formatDate } from '@/shared/utils/format';
 import type { Packument } from '@/modules/package/api/entities/package/package';
@@ -74,7 +74,9 @@ const PackageDetail = ({ packument }: PackageDetailProps) => {
                         <SectionLabel>Installs</SectionLabel>
                         <div className='package-detail__installs'>{compactNumber(packument.downloads.total)}</div>
                         {activity.length > 0 && (
-                            <Sparkline points={activity} width={260} height={40} className='package-detail__sidebar-spark' />
+                            <div className='package-detail__sidebar-spark'>
+                                <Sparkline color='var(--color-text-secondary)' values={activity} width={260} height={40} />
+                            </div>
                         )}
                     </div>
 
