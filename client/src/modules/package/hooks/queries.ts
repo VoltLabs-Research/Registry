@@ -7,7 +7,6 @@ import type {
 import type { Packument, SearchResponse } from '@/modules/package/api/entities/package/package';
 
 export const PACKAGE_QUERY_KEYS = {
-    all: ['package'] as const,
     search: (input: SearchPackagesInput) => ['package', 'search', input] as const,
     packument: (params: PackageRouteParams) => ['package', 'packument', params] as const
 };

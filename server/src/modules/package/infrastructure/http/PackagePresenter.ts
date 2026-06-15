@@ -1,4 +1,3 @@
-import semver from 'semver';
 import type { DistTags, Package } from '@/modules/package/domain/Package.js';
 import type {
     DeprecationInfo,
@@ -6,6 +5,7 @@ import type {
     VersionPlatform,
     VpmManifest
 } from '@/modules/package/domain/Version.js';
+import { resolveLatestVersion } from '@/modules/package/domain/latestVersion.js';
 import type { Packument } from '@/modules/package/application/GetPackumentUseCase.js';
 import type { PackageVersion } from '@/modules/package/application/GetVersionUseCase.js';
 
@@ -120,19 +120,12 @@ export class PackagePresenter {
         }
 
         if (!resolved.latest) {
-            const latest = this.latestVersion(versions);
+            const latest = resolveLatestVersion(versions.map((version) => version.version));
             if (latest) {
                 resolved.latest = latest;
             }
         }
 
         return resolved;
-    }
-
-    private latestVersion(versions: Version[]): string | undefined {
-        return versions
-            .map((version) => version.version)
-            .filter((version) => semver.valid(version) !== null)
-            .sort(semver.rcompare)[0];
     }
 }

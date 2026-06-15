@@ -3,6 +3,7 @@ import { NotFoundError } from '@/core/errors/AppError.js';
 import type { PackageRepository } from '@/modules/package/domain/PackageRepository.js';
 import type { VersionRepository } from '@/modules/package/domain/VersionRepository.js';
 import type { TarballStorage } from '@/modules/download/domain/TarballStorage.js';
+import { toFullName } from '@/modules/package/domain/packageName.js';
 
 export interface PresignTarballInput {
     username: string;
@@ -19,9 +20,6 @@ export interface PresignedTarball {
 }
 
 const PRESIGN_TTL_SECONDS = 300;
-
-const toFullName = (username: string, name: string): string =>
-    `@${username.toLowerCase()}/${name.toLowerCase()}`;
 
 export class PresignTarballUseCase implements UseCase<PresignTarballInput, PresignedTarball> {
     constructor(

@@ -1,6 +1,5 @@
 import { registryClient, getClient as resolveClient } from '@/app/core/http/utilities/create-client';
 import type { HttpClient } from '@/app/core/http/utilities/create-client';
-import type { PaginatedResponse } from '@/shared/domain/pagination/PaginationResponse';
 
 export interface ServiceConfig {
     client?: HttpClient | string;
@@ -27,10 +26,6 @@ interface ServiceContext {
     client: HttpClient;
     basePath: string;
 }
-
-const isEndpointDescriptor = (value: unknown): boolean => {
-    return Boolean(value) && typeof value === 'object' && (value as { __endpoint?: boolean }).__endpoint === true;
-};
 
 const substitutePath = (path: string, input: unknown): { path: string; rest: Record<string, unknown> } => {
     if (!input || typeof input !== 'object') {
@@ -106,58 +101,6 @@ export const get = <TIn = void, TOut = unknown>(
     build: (ctx) => (input: TIn) => makeJsonRequest<TIn, TOut>('GET', ctx, path, opts, input)
 });
 
-export const post = <TIn = void, TOut = unknown>(
-    path: string,
-    opts?: EndpointOptions<TIn, TOut>
-): EndpointDescriptor<TIn, TOut> => ({
-    __endpoint: true,
-    build: (ctx) => (input: TIn) => makeJsonRequest<TIn, TOut>('POST', ctx, path, opts, input)
-});
-
-export const patch = <TIn = void, TOut = unknown>(
-    path: string,
-    opts?: EndpointOptions<TIn, TOut>
-): EndpointDescriptor<TIn, TOut> => ({
-    __endpoint: true,
-    build: (ctx) => (input: TIn) => makeJsonRequest<TIn, TOut>('PATCH', ctx, path, opts, input)
-});
-
-export const del = <TIn = void, TOut = unknown>(
-    path: string,
-    opts?: EndpointOptions<TIn, TOut>
-): EndpointDescriptor<TIn, TOut> => ({
-    __endpoint: true,
-    build: (ctx) => (input: TIn) => makeJsonRequest<TIn, TOut>('DELETE', ctx, path, opts, input)
-});
-
-export const request = <TIn = void, TOut = unknown>(
-    method: string,
-    path: string,
-    opts?: EndpointOptions<TIn, TOut>
-): EndpointDescriptor<TIn, TOut> => ({
-    __endpoint: true,
-    build: (ctx) => (input: TIn) => makeJsonRequest<TIn, TOut>(method.toUpperCase(), ctx, path, opts, input)
-});
-
-export const paginated = <TIn = void, TOut = unknown>(
-    path: string,
-    opts?: EndpointOptions<TIn, PaginatedResponse<TOut>>
-): EndpointDescriptor<TIn, PaginatedResponse<TOut>> => ({
-    __endpoint: true,
-    build: (ctx) => (input: TIn) => makeJsonRequest<TIn, PaginatedResponse<TOut>>('GET', ctx, path, opts, input)
-});
-
-export interface CustomHandlerContext {
-    getClient: (name?: string) => HttpClient;
-}
-
-export const custom = <TIn = void, TOut = unknown>(
-    handler: (ctx: CustomHandlerContext, input: TIn) => Promise<TOut>
-): EndpointDescriptor<TIn, TOut> => ({
-    __endpoint: true,
-    build: () => (input: TIn) => handler({ getClient: resolveClient }, input)
-});
-
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type AnyEndpointDescriptor = EndpointDescriptor<any, any>;
 
@@ -180,9 +123,6 @@ export const createService = <T extends Record<string, AnyEndpointDescriptor>>(
 
     const result = {} as Record<string, unknown>;
     for (const [name, descriptor] of Object.entries(endpoints)) {
-        if (!isEndpointDescriptor(descriptor)) {
-            throw new Error(`Endpoint "${name}" is not a valid descriptor`);
-        }
         result[name] = descriptor.build(ctx);
     }
     return result as ResolvedEndpoints<T>;

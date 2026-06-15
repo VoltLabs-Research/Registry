@@ -8,7 +8,6 @@ interface TitleEntry {
 const APP_NAME = 'VOLT';
 
 let nextTitleId = 0;
-const fallbackTitles: TitleEntry[] = [];
 const pageTitles: TitleEntry[] = [];
 
 const formatPageTitle = (title: string): string => {
@@ -16,9 +15,7 @@ const formatPageTitle = (title: string): string => {
 };
 
 const syncDocumentTitle = (): void => {
-    const activeTitle = pageTitles.length > 0
-        ? pageTitles[pageTitles.length - 1]?.title
-        : fallbackTitles[fallbackTitles.length - 1]?.title;
+    const activeTitle = pageTitles[pageTitles.length - 1]?.title;
 
     document.title = formatPageTitle(activeTitle ?? '');
 };
@@ -73,9 +70,4 @@ const useTrackedTitle = (title: string, titles: TitleEntry[]): void => {
 /** Sets a page title that overrides the route-level fallback while mounted. */
 export function usePageTitle(title: string): void {
     useTrackedTitle(title, pageTitles);
-};
-
-/** Sets a route-level fallback title unless a page override is active. */
-export function useFallbackPageTitle(title: string): void {
-    useTrackedTitle(title, fallbackTitles);
 };

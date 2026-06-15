@@ -4,6 +4,7 @@ import type { Package } from '@/modules/package/domain/Package.js';
 import type { Version } from '@/modules/package/domain/Version.js';
 import type { PackageRepository } from '@/modules/package/domain/PackageRepository.js';
 import type { VersionRepository } from '@/modules/package/domain/VersionRepository.js';
+import { toFullName } from '@/modules/package/domain/packageName.js';
 
 export interface GetVersionInput {
     username: string;
@@ -16,8 +17,6 @@ export interface PackageVersion {
     version: Version;
 }
 
-const toFullName = (username: string, name: string): string =>
-    `@${username.toLowerCase()}/${name.toLowerCase()}`;
 
 export class GetVersionUseCase implements UseCase<GetVersionInput, PackageVersion> {
     constructor(

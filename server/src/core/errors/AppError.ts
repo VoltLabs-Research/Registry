@@ -41,9 +41,3 @@ export class ValidationError extends AppError {
         super(message, 422, 'VALIDATION_FAILED', details);
     }
 }
-
-export class NotImplementedError extends AppError {
-    constructor(message = 'Not Implemented', details?: unknown) {
-        super(message, 501, 'NOT_IMPLEMENTED', details);
-    }
-}

@@ -1,5 +1,4 @@
 import { createHash } from 'node:crypto';
-import semver from 'semver';
 import type { UseCase } from '@/core/application/UseCase.js';
 import { ConflictError, ForbiddenError, ValidationError } from '@/core/errors/AppError.js';
 import type { VersionPlatform, VpmManifest } from '@/modules/package/domain/Version.js';
@@ -7,6 +6,7 @@ import type { Package } from '@/modules/package/domain/Package.js';
 import type { PackageRepository } from '@/modules/package/domain/PackageRepository.js';
 import type { VersionRepository } from '@/modules/package/domain/VersionRepository.js';
 import type { PackageArtifactStorage } from '@/modules/package/domain/PackageArtifactStorage.js';
+import { resolveLatestVersion } from '@/modules/package/domain/latestVersion.js';
 import { publishManifestSchema } from '@/modules/package/application/PublishManifestSchema.js';
 import type { Packument } from '@/modules/package/application/GetPackumentUseCase.js';
 
@@ -145,10 +145,7 @@ export class PublishPackageUseCase implements UseCase<PublishPackageInput, Packu
         readme: string | undefined
     ): Promise<void> {
         const versions = await this.versionRepository.listByPackageId(targetPackage.id);
-        const latest = versions
-            .map((version) => version.version)
-            .filter((version) => semver.valid(version) !== null)
-            .sort(semver.rcompare)[0];
+        const latest = resolveLatestVersion(versions.map((version) => version.version));
 
         await this.packageRepository.update(targetPackage.id, {
             kind: manifest.kind,

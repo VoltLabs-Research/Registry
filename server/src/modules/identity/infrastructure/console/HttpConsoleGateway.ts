@@ -6,55 +6,30 @@ import type {
     ConsoleWhoamiResult
 } from '@/modules/identity/domain/ConsoleGateway.js';
 
-interface ConsoleCall {
-    method: 'GET' | 'POST' | 'PUT' | 'DELETE';
-    path: string;
-    headers?: Record<string, string>;
-    body?: unknown;
-    retries?: number;
-}
-
-interface ConsoleCallResult {
-    status: number;
-    body: unknown;
-}
+const MAX_RETRIES = 2;
 
 const sleep = (milliseconds: number): Promise<void> =>
     new Promise((resolve) => setTimeout(resolve, milliseconds));
 
 export class HttpConsoleGateway implements ConsoleGateway {
     async whoami(authorization: string): Promise<ConsoleWhoamiResult> {
-        const result = await this.call({
-            method: 'GET',
-            path: '/auth/whoami',
-            headers: { Authorization: authorization }
-        });
-        return { status: result.status, body: result.body };
-    }
-
-    private async call(input: ConsoleCall): Promise<ConsoleCallResult> {
-        const maxRetries = input.retries ?? 2;
-        const url = `${env.CONSOLE_URL}${input.path}`;
+        const url = `${env.CONSOLE_URL}/auth/whoami`;
 
         let attempt = 0;
         let lastError: unknown = null;
 
-        while (attempt <= maxRetries) {
+        while (attempt <= MAX_RETRIES) {
             try {
                 const response = await request(url, {
-                    method: input.method,
+                    method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',
-                        ...input.headers
-                    },
-                    body: input.body !== undefined ? JSON.stringify(input.body) : undefined
+                        Authorization: authorization
+                    }
                 });
 
                 const body = await this.readJsonOrText(response);
-                return {
-                    status: response.statusCode,
-                    body
-                };
+                return { status: response.statusCode, body };
             } catch (error) {
                 lastError = error;
                 logger.warn(
@@ -66,7 +41,7 @@ export class HttpConsoleGateway implements ConsoleGateway {
                     'console call failed'
                 );
                 attempt += 1;
-                if (attempt > maxRetries) {
+                if (attempt > MAX_RETRIES) {
                     break;
                 }
                 await sleep(150 * attempt);

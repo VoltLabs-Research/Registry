@@ -7,8 +7,6 @@ import { UnauthorizedError } from '@/core/errors/AppError.js';
 export interface Identity {
     accountId: string;
     username: string;
-    scopes?: string[];
-    scopeMask?: number;
 }
 
 declare module 'express-serve-static-core' {
@@ -23,8 +21,6 @@ interface IntrospectionResult {
     active: boolean;
     accountId?: string;
     username?: string;
-    scopes?: string[];
-    scopeMask?: number;
     expiresAt?: string;
 }
 
@@ -86,7 +82,7 @@ export const requireAuth = async (
     next: NextFunction
 ): Promise<void> => {
     try {
-        const header = req.header('authorization') ?? req.header('Authorization');
+        const header = req.header('authorization');
         if (!header || !header.toLowerCase().startsWith('bearer ')) {
             throw new UnauthorizedError('Missing bearer token');
         }
@@ -103,9 +99,7 @@ export const requireAuth = async (
             }
             req.identity = {
                 accountId: result.accountId,
-                username: result.username,
-                scopes: result.scopes,
-                scopeMask: result.scopeMask
+                username: result.username
             };
             next();
             return;
@@ -122,17 +116,4 @@ export const requireAuth = async (
         logger.warn({ err: err instanceof Error ? err.message : String(err) }, 'auth failed');
         next(new UnauthorizedError('Invalid credentials'));
     }
-};
-
-export const optionalAuth = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-): Promise<void> => {
-    const header = req.header('authorization') ?? req.header('Authorization');
-    if (!header) {
-        next();
-        return;
-    }
-    await requireAuth(req, res, next);
 };

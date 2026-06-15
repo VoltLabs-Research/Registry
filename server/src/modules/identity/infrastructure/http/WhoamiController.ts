@@ -6,7 +6,7 @@ export class WhoamiController {
     constructor(private readonly consoleGateway: ConsoleGateway) {}
 
     whoami = async (request: Request, response: Response): Promise<void> => {
-        const authorization = request.header('authorization') ?? request.header('Authorization');
+        const authorization = request.header('authorization');
         if (!authorization) {
             throw new UnauthorizedError('Missing bearer token');
         }

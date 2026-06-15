@@ -3,6 +3,7 @@ import { ForbiddenError, NotFoundError, ValidationError } from '@/core/errors/Ap
 import type { Version } from '@/modules/package/domain/Version.js';
 import type { PackageRepository } from '@/modules/package/domain/PackageRepository.js';
 import type { VersionRepository } from '@/modules/package/domain/VersionRepository.js';
+import { toFullName } from '@/modules/package/domain/packageName.js';
 
 export interface DeprecateVersionInput {
     username: string;
@@ -20,11 +21,11 @@ export class DeprecateVersionUseCase implements UseCase<DeprecateVersionInput, V
     ) {}
 
     async execute(input: DeprecateVersionInput): Promise<Version> {
-        if (!input.reason || input.reason.trim().length === 0) {
+        if (input.reason.trim().length === 0) {
             throw new ValidationError('A deprecation reason is required');
         }
 
-        const fullName = `@${input.username.toLowerCase()}/${input.name.toLowerCase()}`;
+        const fullName = toFullName(input.username, input.name);
         const targetPackage = await this.packageRepository.findByFullName(fullName);
         if (!targetPackage) {
             throw new NotFoundError(`Package ${fullName} not found`);
