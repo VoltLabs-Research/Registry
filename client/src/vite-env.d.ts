@@ -8,8 +8,6 @@ interface ImportMeta {
     readonly env: ImportMetaEnv;
 }
 
-// @types/react 18.3.x predates the Popover API attributes; declare the
-// minimal surface AppToaster relies on.
 import 'react';
 declare module 'react' {
     interface HTMLAttributes<T> {

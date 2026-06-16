@@ -555,7 +555,6 @@ const upsertRelease = async (
         platforms: platforms.map((p) => p.tag)
     };
 
-    // Each successive release lands one day after the previous so the history is ordered.
     const publishedAt = new Date(`${pkg.firstSeen}T00:00:00.000Z`);
     publishedAt.setUTCDate(publishedAt.getUTCDate() + index);
 
@@ -618,8 +617,6 @@ const main = async (): Promise<void> => {
             count += 1;
             logger.info({ fullName: `@${USERNAME}/${pkg.name}`, kind: pkg.kind }, 'package seeded');
         }
-        // Drops the legacy securityAudits field from any existing docs (not in the schema,
-        // so a Mongoose-level $unset would be stripped — go through the raw collection).
         await PackageModel.collection.updateMany({}, { $unset: { securityAudits: '', githubStars: '' } });
         logger.info({ count }, 'sample package seed complete');
     } finally {

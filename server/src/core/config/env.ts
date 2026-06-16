@@ -8,9 +8,6 @@ const envSchema = z.object({
     PORT: z.coerce.number().int().positive().default(8082),
     MONGO_URL: z.string().min(1),
     RUSTFS_ENDPOINT: z.string().url(),
-    // Endpoint embedded into presigned download URLs handed to external clients.
-    // Defaults to RUSTFS_ENDPOINT; override when the internal endpoint differs
-    // from the host/CDN address that clients can actually reach.
     RUSTFS_PUBLIC_ENDPOINT: z.string().url().optional(),
     RUSTFS_REGION: z.string().min(1).default('us-east-1'),
     RUSTFS_ACCESS_KEY: z.string().min(1),

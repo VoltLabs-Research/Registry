@@ -34,7 +34,6 @@ const writeToClipboard = async (text: string): Promise<boolean> => {
             await navigator.clipboard.writeText(text);
             return true;
         } catch {
-            // Falls through to the execCommand fallback.
         }
     }
     return copyWithExecCommand(text);
