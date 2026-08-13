@@ -1,4 +1,4 @@
-import { ApiError } from '@/shared/errors/core';
+import { ApiError } from '@/shared/errors/core/api-error';
 
 export interface HttpClient {
     baseUrl: string;
@@ -6,9 +6,7 @@ export interface HttpClient {
 }
 
 export interface HttpRequestInit {
-    body?: BodyInit | null;
     headers?: Record<string, string>;
-    isJsonBody?: boolean;
     query?: Record<string, string | number | boolean | undefined | null>;
     signal?: AbortSignal;
 }
@@ -34,18 +32,11 @@ const createHttpClient = (baseUrl: string): HttpClient => {
     return {
         baseUrl,
         async request<T>(method: string, path: string, init: HttpRequestInit = {}): Promise<T> {
-            const headers: Record<string, string> = { ...(init.headers ?? {}) };
-
-            if (init.isJsonBody && !headers['Content-Type']) {
-                headers['Content-Type'] = 'application/json';
-            }
-
             const url = appendQuery(joinUrl(baseUrl, path), init.query);
 
             const response = await fetch(url, {
                 method,
-                headers,
-                body: init.body ?? null,
+                headers: { ...(init.headers ?? {}) },
                 signal: init.signal,
                 credentials: 'omit'
             });
@@ -74,5 +65,3 @@ const createHttpClient = (baseUrl: string): HttpClient => {
 const REGISTRY_URL = import.meta.env.VITE_REGISTRY_URL ?? 'http://localhost:8082';
 
 export const registryClient: HttpClient = createHttpClient(REGISTRY_URL);
-
-export const getClient = (_name?: string): HttpClient => registryClient;

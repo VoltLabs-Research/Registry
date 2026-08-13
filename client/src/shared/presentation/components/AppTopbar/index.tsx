@@ -1,5 +1,4 @@
 import { Link } from 'react-router-dom';
-import './AppTopbar.css';
 
 const NAV_LINKS = [
     { label: 'Docs', href: 'https://docs.voltcloud.dev' },
@@ -9,17 +8,20 @@ const NAV_LINKS = [
 
 const AppTopbar = () => {
     return (
-        <header className='app-topbar'>
-            <div className='app-topbar__inner'>
-                <Link to='/' className='app-topbar__brand'>
-                    <span className='app-topbar__brand-label'>Registry</span>
+        <header className='sticky top-0 z-50 w-full bg-background'>
+            <div className='mx-auto flex h-16 w-full max-w-[1080px] flex-row items-center justify-between px-6'>
+                <Link
+                    to='/'
+                    className='inline-flex flex-row items-center gap-2 text-base font-semibold tracking-[-0.01em] text-foreground no-underline'
+                >
+                    Registry
                 </Link>
-                <nav className='app-topbar__nav' aria-label='External'>
+                <nav className='inline-flex flex-row items-center gap-6' aria-label='External'>
                     {NAV_LINKS.map((link) => (
                         <a
                             key={link.label}
                             href={link.href}
-                            className='app-topbar__link'
+                            className='font-mono text-sm text-muted no-underline transition-colors hover:text-foreground'
                             rel='noreferrer'
                         >
                             {link.label}

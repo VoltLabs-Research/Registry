@@ -16,6 +16,10 @@ const POPOVER_STYLE = {
     overflow: 'visible'
 } as const;
 
+const TOASTER_DEFAULTS = {
+    fill: 'var(--surface-tertiary)'
+};
+
 const AppToaster = () => {
     const popoverRef = useRef<HTMLDivElement>(null);
 
@@ -30,12 +34,7 @@ const AppToaster = () => {
             popover='manual'
             style={POPOVER_STYLE}
         >
-            {/*
-             * Sileo v0.1.5 uses contrast-inverted fills internally
-             * (THEME_FILLS maps 'light' → dark fill, 'dark' → light fill).
-             * The app is dark-only, so we pass 'light' to get a dark fill.
-             */}
-            <Toaster position='bottom-right' theme='light' />
+            <Toaster position='bottom-right' options={TOASTER_DEFAULTS} />
         </div>
     );
 };

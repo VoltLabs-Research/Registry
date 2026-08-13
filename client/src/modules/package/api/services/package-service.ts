@@ -50,7 +50,7 @@ const normalizeSearch = (raw: RawSearchResponse): SearchResponse => ({
 });
 
 export const packageService = createService(
-    { client: 'registry' },
+    {},
     {
         search: get<SearchPackagesInput, SearchResponse>('/-/search', {
             query: (input) => ({

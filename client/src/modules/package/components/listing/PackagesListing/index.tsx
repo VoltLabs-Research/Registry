@@ -1,13 +1,17 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, BadgeCheck } from 'lucide-react';
-import { Sparkline, Skeleton, EmptyState } from '@voltstack/bravais';
+import { Button, EmptyStateRoot, InputGroup, Kbd, Skeleton, TextField } from '@heroui/react';
+import Sparkline from '@/shared/presentation/components/Sparkline';
 import { useSearchPackagesQuery } from '@/modules/package/hooks/queries';
 import { compactNumber } from '@/shared/utils/format';
 import type { PackumentSummary } from '@/modules/package/api/entities/package/package';
-import './PackagesListing.css';
 
 const numberFormatter = new Intl.NumberFormat('en-US');
+
+const ROW_GRID = 'grid grid-cols-[2.5rem_minmax(0,1fr)_140px_120px] items-center gap-4 max-[720px]:grid-cols-[2rem_minmax(0,1fr)_100px]';
+
+const SKELETON_ROW_COUNT = 8;
 
 const useDebounced = <T,>(value: T, delay: number): T => {
     const [debounced, setDebounced] = useState<T>(value);
@@ -54,68 +58,70 @@ const PackagesListing = () => {
     };
 
     return (
-        <div className='packages-listing'>
-            <div className='packages-listing__search'>
-                <Search size={18} className='packages-listing__search-icon' aria-hidden='true' />
-                <input
-                    ref={inputRef}
-                    type='search'
-                    className='packages-listing__search-input'
-                    value={query}
-                    onChange={(event) => setQuery(event.currentTarget.value)}
-                    placeholder='Search plugins.'
-                    aria-label='Search plugins'
-                />
-                <span className='packages-listing__search-hint' aria-hidden='true'>/</span>
-            </div>
+        <div className='mx-auto w-full max-w-[1080px] px-6 pt-8 pb-16'>
+            <TextField value={query} onChange={setQuery} aria-label='Search plugins' fullWidth>
+                <InputGroup fullWidth>
+                    <InputGroup.Prefix aria-hidden='true'>
+                        <Search size={18} />
+                    </InputGroup.Prefix>
+                    <InputGroup.Input
+                        ref={inputRef}
+                        type='search'
+                        placeholder='Search plugins.'
+                    />
+                    <InputGroup.Suffix aria-hidden='true'>
+                        <Kbd variant='light'>/</Kbd>
+                    </InputGroup.Suffix>
+                </InputGroup>
+            </TextField>
 
-            <nav className='packages-listing__tabs' aria-label='Plugins'>
-                <span className='packages-listing__tab packages-listing__tab--active' aria-current='true'>
+            <div className='mt-7 border-b border-border pb-3'>
+                <span className='font-mono text-sm text-foreground'>
                     All{total === null ? '' : ` (${numberFormatter.format(total)})`}
                 </span>
-            </nav>
+            </div>
 
-            <div className='packages-listing__table' role='table' aria-label='Plugins'>
-                <div className='packages-listing__head' role='row'>
-                    <span className='packages-listing__col packages-listing__col--rank' role='columnheader'>#</span>
-                    <span className='packages-listing__col packages-listing__col--package' role='columnheader'>Plugin</span>
-                    <span className='packages-listing__col packages-listing__col--activity' role='columnheader'>Activity</span>
-                    <span className='packages-listing__col packages-listing__col--installs' role='columnheader'>Installs</span>
+            <div className='mt-6 w-full' role='table' aria-label='Plugins'>
+                <div
+                    className={`${ROW_GRID} border-b border-border px-2 pb-2.5 font-mono text-2xs tracking-[0.08em] text-muted uppercase`}
+                    role='row'
+                >
+                    <span role='columnheader'>#</span>
+                    <span role='columnheader'>Plugin</span>
+                    <span role='columnheader' className='max-[720px]:hidden'>Activity</span>
+                    <span role='columnheader' className='justify-self-end'>Installs</span>
                 </div>
 
                 {isLoading ? (
-                    Array.from({ length: 8 }).map((_, index) => (
-                        <div key={`skeleton-${index}`} className='packages-listing__row' aria-hidden='true'>
-                            <span className='packages-listing__col packages-listing__col--rank'>
-                                <Skeleton width={16} height={14} />
-                            </span>
-                            <span className='packages-listing__col packages-listing__col--package'>
-                                <Skeleton width='40%' height={16} />
-                            </span>
-                            <span className='packages-listing__col packages-listing__col--activity'>
-                                <Skeleton width={120} height={20} />
-                            </span>
-                            <span className='packages-listing__col packages-listing__col--installs'>
-                                <Skeleton width={48} height={14} />
-                            </span>
+                    Array.from({ length: SKELETON_ROW_COUNT }).map((_, index) => (
+                        <div
+                            key={`skeleton-${index}`}
+                            className={`${ROW_GRID} min-h-14 border-b border-border px-2`}
+                            aria-hidden='true'
+                        >
+                            <Skeleton className='h-3.5 w-4 rounded-sm' />
+                            <Skeleton className='h-4 w-2/5 rounded-sm' />
+                            <Skeleton className='h-5 w-full rounded-sm max-[720px]:hidden' />
+                            <Skeleton className='h-3.5 w-12 justify-self-end rounded-sm' />
                         </div>
                     ))
                 ) : hasError ? (
-                    <div className='packages-listing__empty'>
-                        <EmptyState
-                            title='Could not load plugins'
-                            description='Please retry in a moment.'
-                            buttonText='Retry'
-                            buttonOnClick={() => searchQuery.refetch()}
-                        />
-                    </div>
+                    <EmptyStateRoot className='flex flex-col items-center gap-4 px-4 py-16 text-center'>
+                        <p className='text-base font-medium text-foreground'>Could not load plugins</p>
+                        <p className='text-sm text-muted'>Please retry in a moment.</p>
+                        <Button variant='primary' size='sm' onPress={() => searchQuery.refetch()}>
+                            Retry
+                        </Button>
+                    </EmptyStateRoot>
                 ) : rows.length === 0 ? (
-                    <div className='packages-listing__empty'>No plugins found.</div>
+                    <EmptyStateRoot className='px-4 py-16 text-center font-mono text-base text-muted'>
+                        No plugins found.
+                    </EmptyStateRoot>
                 ) : (
                     rows.map((row, index) => (
                         <div
                             key={row.fullName}
-                            className='packages-listing__row packages-listing__row--clickable'
+                            className={`${ROW_GRID} min-h-14 cursor-pointer border-b border-border px-2 transition-colors hover:bg-surface focus-visible:bg-surface`}
                             role='row'
                             tabIndex={0}
                             onClick={() => handleRowClick(row)}
@@ -126,21 +132,24 @@ const PackagesListing = () => {
                                 }
                             }}
                         >
-                            <span className='packages-listing__col packages-listing__col--rank' role='cell'>
+                            <span className='font-mono text-sm text-muted' role='cell'>
                                 {index + 1}
                             </span>
-                            <span className='packages-listing__col packages-listing__col--package' role='cell'>
-                                <span className='packages-listing__name'>{row.name}</span>
-                                <span className='packages-listing__path'>{row.fullName}</span>
+                            <span className='flex min-w-0 flex-row items-baseline gap-2' role='cell'>
+                                <span className='text-base font-semibold text-foreground'>{row.name}</span>
+                                <span className='truncate font-mono text-sm text-muted'>{row.fullName}</span>
                             </span>
-                            <span className='packages-listing__col packages-listing__col--activity' role='cell'>
-                                <Sparkline color='var(--color-text-secondary)' values={row.activity} width={120} height={28} />
+                            <span className='max-[720px]:hidden' role='cell'>
+                                <Sparkline values={row.activity} height={28} />
                             </span>
-                            <span className='packages-listing__col packages-listing__col--installs' role='cell'>
+                            <span
+                                className='inline-flex flex-row items-center justify-self-end gap-1.5'
+                                role='cell'
+                            >
                                 {row.verified && (
-                                    <BadgeCheck size={14} className='packages-listing__verified' aria-label='Verified' />
+                                    <BadgeCheck size={14} className='shrink-0 text-muted' aria-label='Verified' />
                                 )}
-                                <span className='packages-listing__installs-value'>
+                                <span className='font-mono text-sm text-foreground'>
                                     {compactNumber(row.downloads.total)}
                                 </span>
                             </span>

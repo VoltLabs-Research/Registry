@@ -1,10 +1,10 @@
 import { Link } from 'react-router-dom';
 import { BadgeCheck } from 'lucide-react';
-import { Sparkline } from '@voltstack/bravais';
+import { Chip, Separator } from '@heroui/react';
+import Sparkline from '@/shared/presentation/components/Sparkline';
 import MarkdownView from '@/shared/presentation/components/MarkdownView';
 import { compactNumber, formatDate } from '@/shared/utils/format';
 import type { Packument } from '@/modules/package/api/entities/package/package';
-import './PackageDetail.css';
 
 interface PackageDetailProps {
     packument: Packument;
@@ -34,9 +34,11 @@ interface SectionLabelProps {
 }
 
 const SectionLabel = ({ children }: SectionLabelProps) => (
-    <div className='package-detail__section-label'>
-        <span>{children}</span>
-        <hr className='package-detail__hairline' />
+    <div className='mb-3 flex flex-row items-center gap-3.5'>
+        <span className='font-mono text-xs tracking-[0.08em] whitespace-nowrap text-muted uppercase'>
+            {children}
+        </span>
+        <Separator className='flex-1' />
     </div>
 );
 
@@ -48,50 +50,57 @@ const PackageDetail = ({ packument }: PackageDetailProps) => {
     );
 
     return (
-        <div className='package-detail'>
-            <nav className='package-detail__breadcrumb' aria-label='Breadcrumb'>
-                <Link to='/' className='package-detail__breadcrumb-link'>packages</Link>
-                <span className='package-detail__breadcrumb-sep'>/</span>
+        <div className='mx-auto w-full max-w-[1080px] px-6 pt-4 pb-16'>
+            <nav
+                className='flex flex-row items-center gap-1.5 font-mono text-sm text-muted'
+                aria-label='Breadcrumb'
+            >
+                <Link to='/' className='text-muted no-underline transition-colors hover:text-foreground'>
+                    packages
+                </Link>
+                <span className='opacity-60' aria-hidden='true'>/</span>
                 <span>{packument.username}</span>
-                <span className='package-detail__breadcrumb-sep'>/</span>
+                <span className='opacity-60' aria-hidden='true'>/</span>
                 <span>{packument.name}</span>
             </nav>
 
-            <h1 className='package-detail__title'>{packument.name}</h1>
-            <span className='package-detail__kind'>Plugin</span>
+            <h1 className='mt-3 text-4xl leading-tight font-bold tracking-[-0.03em] text-foreground max-md:text-3xl'>
+                {packument.name}
+            </h1>
+            <Chip variant='soft' size='sm' className='mt-3.5 font-mono'>Plugin</Chip>
 
-            <div className='package-detail__layout'>
-                <div className='package-detail__main'>
+            <div className='mt-10 grid grid-cols-[minmax(0,1fr)_300px] gap-12 max-[900px]:grid-cols-[minmax(0,1fr)] max-[900px]:gap-10'>
+                <div className='flex min-w-0 flex-col gap-9'>
                     {packument.readme && packument.readme.trim().length > 0 ? (
                         <MarkdownView markdown={packument.readme} />
                     ) : (
-                        <p className='package-detail__muted'>No README provided.</p>
+                        <p className='text-base text-muted'>No README provided.</p>
                     )}
                 </div>
 
-                <aside className='package-detail__sidebar'>
-                    <div className='package-detail__block'>
+                <aside className='flex flex-col gap-6'>
+                    <div className='flex flex-col'>
                         <SectionLabel>Installs</SectionLabel>
-                        <div className='package-detail__installs'>{compactNumber(packument.downloads.total)}</div>
+                        <div className='text-3xl leading-tight font-semibold text-foreground tabular-nums'>
+                            {compactNumber(packument.downloads.total)}
+                        </div>
                         {activity.length > 0 && (
-                            <div className='package-detail__sidebar-spark'>
-                                <Sparkline color='var(--color-text-secondary)' values={activity} width={260} height={40} />
-                            </div>
+                            <Sparkline values={activity} height={40} className='mt-3' />
                         )}
                     </div>
 
                     {packument.repository && (
-                        <div className='package-detail__block'>
+                        <div className='flex flex-col'>
                             <SectionLabel>Repository</SectionLabel>
-                            <div className='package-detail__repo'>
+                            <div className='flex flex-row items-center gap-1.5'>
                                 {packument.verified && (
-                                    <BadgeCheck size={14} className='package-detail__verified' aria-label='Verified' />
+                                    <BadgeCheck size={14} className='shrink-0 text-muted' aria-label='Verified' />
                                 )}
                                 <a
                                     href={packument.repository.url}
                                     target='_blank'
                                     rel='noreferrer'
-                                    className='package-detail__repo-link'
+                                    className='truncate font-mono text-sm text-foreground underline decoration-border underline-offset-2 transition-colors hover:decoration-foreground'
                                 >
                                     {stripGithubPrefix(packument.repository.url)}
                                 </a>
@@ -100,20 +109,25 @@ const PackageDetail = ({ packument }: PackageDetailProps) => {
                     )}
 
                     {versions.length > 0 && (
-                        <div className='package-detail__block'>
+                        <div className='flex flex-col'>
                             <SectionLabel>Versions</SectionLabel>
-                            <ul className='package-detail__versions'>
+                            <ul className='flex list-none flex-col gap-1.5 p-0'>
                                 {versions.map((version) => (
-                                    <li key={version.version} className='package-detail__version'>
-                                        <span className='package-detail__version-name'>{version.version}</span>
-                                        <span className='package-detail__version-date'>{formatDate(version.publishedAt)}</span>
+                                    <li
+                                        key={version.version}
+                                        className='flex flex-row items-center gap-2 font-mono text-sm'
+                                    >
+                                        <span className='text-foreground'>{version.version}</span>
+                                        <span className='ml-auto text-xs text-muted'>
+                                            {formatDate(version.publishedAt)}
+                                        </span>
                                         {version.deprecated && (
-                                            <span className='package-detail__version-tag package-detail__version-tag--deprecated'>
+                                            <span className='rounded-sm border border-warning-soft-foreground/40 px-1.5 text-2xs tracking-[0.04em] text-warning-soft-foreground'>
                                                 deprecated
                                             </span>
                                         )}
                                         {version.version === latestVersion && (
-                                            <span className='package-detail__version-tag package-detail__version-tag--latest'>
+                                            <span className='rounded-sm border border-border px-1.5 text-2xs tracking-[0.04em] text-foreground'>
                                                 latest
                                             </span>
                                         )}
@@ -124,9 +138,11 @@ const PackageDetail = ({ packument }: PackageDetailProps) => {
                     )}
 
                     {packument.firstSeen && (
-                        <div className='package-detail__block'>
+                        <div className='flex flex-col'>
                             <SectionLabel>First seen</SectionLabel>
-                            <div className='package-detail__first-seen'>{formatDate(packument.firstSeen)}</div>
+                            <div className='font-mono text-base text-foreground'>
+                                {formatDate(packument.firstSeen)}
+                            </div>
                         </div>
                     )}
                 </aside>

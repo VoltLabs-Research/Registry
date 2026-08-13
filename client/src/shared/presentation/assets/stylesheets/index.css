@@ -1,0 +1,230 @@
+@import '@heroui/styles';
+
+@theme {
+    --font-sans: 'Inter Variable', Inter, 'Segoe UI Variable', 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-mono: 'JetBrains Mono Variable', 'JetBrains Mono', 'Cascadia Code', 'Cascadia Mono', 'SF Mono', Consolas, monospace;
+
+    --text-2xs: 0.6875rem;
+    --text-2xs--line-height: 1rem;
+    --text-xs: 0.75rem;
+    --text-xs--line-height: 1rem;
+    --text-sm: 0.8125rem;
+    --text-sm--line-height: 1.125rem;
+    --text-base: 0.875rem;
+    --text-base--line-height: 1.25rem;
+
+    --font-weight-medium: 480;
+    --font-weight-semibold: 550;
+    --font-weight-bold: 620;
+
+    --radius-xl: 0.625rem;
+    --radius-2xl: 0.625rem;
+    --radius-3xl: 0.625rem;
+}
+
+@theme inline {
+    --color-info: var(--info);
+    --color-info-foreground: var(--info-foreground);
+    --color-info-soft: var(--info-soft);
+    --color-info-soft-foreground: var(--info-soft-foreground);
+    --color-success-soft: var(--success-soft);
+    --color-success-soft-foreground: var(--success-soft-foreground);
+    --color-warning-soft-foreground: var(--warning-soft-foreground);
+    --color-danger-soft: var(--danger-soft);
+    --color-danger-soft-foreground: var(--danger-soft-foreground);
+}
+
+:root,
+.light,
+[data-theme='light'],
+.dark,
+[data-theme='dark'] {
+    --accent: var(--foreground);
+    --accent-foreground: var(--background);
+    --accent-soft-foreground: var(--default-foreground);
+    --link: var(--foreground);
+}
+
+:root,
+.light,
+[data-theme='light'],
+.dark,
+[data-theme='dark'] {
+    --field-shadow: 0 0 0 0 transparent inset;
+    --field-border-width: 1px;
+    --field-border: var(--border);
+    --field-background: transparent;
+
+    --radius: 0.25rem;
+}
+
+:root,
+.light,
+[data-theme='light'],
+.dark,
+[data-theme='dark'] {
+    --scrollbar-width: none;
+}
+
+* {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+*::-webkit-scrollbar {
+    display: none;
+}
+
+:root,
+.light,
+[data-theme='light'] {
+    --background: oklch(0.9702 0 0);
+    --foreground: #28282b;
+
+    --surface: #ffffff;
+    --surface-secondary: oklch(0.9524 0.0013 286.37);
+    --surface-tertiary: oklch(0.9373 0.0013 286.37);
+
+    --overlay: #ffffff;
+
+    --default: oklch(94% 0.001 286.375);
+    --default-foreground: var(--foreground);
+
+    --muted: #8e8e93;
+
+    --border: oklch(90% 0.004 286.32);
+    --separator: oklch(92% 0.004 286.32);
+    --border-secondary: oklch(87% 0.004 286.32);
+
+    --success: #34c759;
+    --warning: #ffcc00;
+    --danger: #ff3b30;
+
+    --info: #007aff;
+    --info-foreground: var(--snow);
+}
+
+.dark,
+[data-theme='dark'] {
+    --background: #0c0c0e;
+    --foreground: #e9e9ec;
+
+    --surface: #101011;
+    --surface-secondary: #171719;
+    --surface-tertiary: #1d1d20;
+
+    --overlay: #171719;
+
+    --default: #2b2b2e;
+    --default-foreground: var(--foreground);
+
+    --muted: #7e808b;
+
+    --border: #1d1d20;
+    --separator: #1d1d20;
+    --border-secondary: #2b2b2e;
+
+    --success: #2dcc70;
+    --warning: #ffd60a;
+    --danger: #ff453a;
+
+    --info: #0a84ff;
+    --info-foreground: var(--snow);
+}
+
+:root,
+.light,
+[data-theme='light'],
+.dark,
+[data-theme='dark'] {
+    --info-soft: color-mix(in oklab, var(--info) 15%, transparent);
+    --info-soft-foreground: color-mix(in oklab, var(--info) 70%, var(--foreground) 30%);
+
+    --success-soft-foreground: color-mix(in oklab, var(--success) 70%, var(--foreground) 30%);
+    --warning-soft-foreground: color-mix(in oklab, var(--warning) 60%, var(--foreground) 40%);
+    --danger-soft-foreground: color-mix(in oklab, var(--danger) 70%, var(--foreground) 30%);
+}
+
+:where(a, button, input, select, textarea, summary, [role='button'], [tabindex]:not([tabindex='-1'])):focus {
+    outline: none;
+}
+
+:where(a, button, input, select, textarea, summary, [role='button'], [tabindex]:not([tabindex='-1'])):not([data-slot]):focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+}
+
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+    -webkit-box-shadow: 0 0 0 1000px var(--surface-secondary) inset !important;
+    box-shadow: 0 0 0 1000px var(--surface-secondary) inset !important;
+    -webkit-text-fill-color: var(--field-foreground, var(--foreground)) !important;
+}
+
+input[type='number']::-webkit-outer-spin-button,
+input[type='number']::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+input[type='number'] {
+    appearance: textfield;
+    -moz-appearance: textfield;
+}
+
+html {
+    font-size: var(--volt-root-font-size, 16px);
+    max-width: var(--volt-app-max-width, 2560px);
+    margin-inline: auto;
+    background-color: var(--background);
+}
+
+html,
+body {
+    height: 100%;
+    width: 100%;
+}
+
+body {
+    min-height: 100dvh;
+    text-rendering: optimizeLegibility;
+    font-synthesis-weight: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+#root {
+    width: 100%;
+    max-width: 100%;
+    min-height: 100dvh;
+}
+
+:where(body, #root) {
+    scroll-padding-top: env(safe-area-inset-top, 0px);
+    scroll-padding-right: env(safe-area-inset-right, 0px);
+    scroll-padding-bottom: env(safe-area-inset-bottom, 0px);
+    scroll-padding-left: env(safe-area-inset-left, 0px);
+}
+
+@layer components {
+    @media (pointer: coarse) and (width < 64rem) {
+        .button--sm {
+            min-height: 2.75rem;
+        }
+
+        .button--sm.button--icon-only {
+            min-width: 2.75rem;
+        }
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}
