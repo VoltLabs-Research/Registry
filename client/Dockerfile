@@ -1,11 +1,11 @@
+ARG APP
 FROM node:20-alpine AS builder
 WORKDIR /app
-COPY package.json package-lock.json* ./
-RUN npm install
-COPY . .
-# Vite bakes VITE_* from .env (committed) at build time. Override per-deploy
-# with .env.local (gitignored) or by editing .env before building.
-RUN npm run build
+COPY packages ./packages
+COPY ${APP}/client/package.json ${APP}/client/package-lock.json* ./client/
+RUN cd client && npm ci
+COPY ${APP}/client ./client
+RUN cd client && npm run build
 
 FROM nginx:alpine AS runtime
 RUN rm -f /etc/nginx/conf.d/default.conf
@@ -21,6 +21,6 @@ server {
     }
 }
 EOF
-COPY --from=builder /app/dist /usr/share/nginx/html
+COPY --from=builder /app/client/dist /usr/share/nginx/html
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]

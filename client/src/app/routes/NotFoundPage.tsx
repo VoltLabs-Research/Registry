@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { EmptyStateRoot, buttonVariants } from '@heroui/react';
 import { SearchX } from 'lucide-react';
 import { useId } from 'react';
-import { usePageTitle } from '@/shared/presentation/hooks/use-page-title';
+import { usePageTitle } from '@volt/ui';
 
 const NotFoundPage = () => {
     usePageTitle('Not Found');

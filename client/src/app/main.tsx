@@ -2,10 +2,10 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import App from '@/app/App';
-import AppToaster from '@/shared/presentation/components/AppToaster';
+import { AppToaster } from '@volt/ui';
 
-import '@/shared/presentation/assets/stylesheets/fonts.css';
-import '@/shared/presentation/assets/stylesheets/index.css';
+import '@volt/ui/fonts.css';
+import '@volt/ui/index.css';
 
 const queryClient = new QueryClient({
     defaultOptions: {

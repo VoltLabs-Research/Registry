@@ -4,3 +4,9 @@ dist
 *.log
 .DS_Store
 coverage
+# Repowise
+.repowise
+
+# MCP and Claude
+.mcp.json
+.claude

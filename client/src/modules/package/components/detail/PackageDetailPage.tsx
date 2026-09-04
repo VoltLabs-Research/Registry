@@ -2,10 +2,9 @@ import { Link, useParams } from 'react-router-dom';
 import { EmptyStateRoot, buttonVariants } from '@heroui/react';
 import { PackageX } from 'lucide-react';
 import AppTopbar from '@/shared/presentation/components/AppTopbar';
-import Loader from '@/shared/presentation/components/Loader';
+import { Loader, usePageTitle } from '@volt/ui';
 import PackageDetail from '@/modules/package/components/detail/PackageDetail';
 import { useGetPackumentQuery } from '@/modules/package/hooks/queries';
-import { usePageTitle } from '@/shared/presentation/hooks/use-page-title';
 
 const PackageDetailPage = () => {
     const { username = '', name = '' } = useParams<{ username: string; name: string }>();

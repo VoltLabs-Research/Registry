@@ -66,8 +66,10 @@ services:
 
     client:
         build:
-            context: ./client
-            dockerfile: Dockerfile
+            context: .
+            dockerfile: client/Dockerfile
+            args:
+                APP: Registry
         restart: unless-stopped
         depends_on:
             - registry

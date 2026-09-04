@@ -1,0 +1,6 @@
+node_modules
+client/dist
+client/.env.local
+client/.env.*.local
+packages/ui/dist
+!packages/ui/node_modules
