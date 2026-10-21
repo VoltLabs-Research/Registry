@@ -6,6 +6,7 @@ import {
     DeleteObjectCommand
 } from '@aws-sdk/client-s3';
 import { getSignedUrl as awsGetSignedUrl } from '@aws-sdk/s3-request-presigner';
+import { Readable } from 'node:stream';
 import env from '@/core/config/env.js';
 
 const createClient = (endpoint: string): S3Client =>
@@ -65,6 +66,14 @@ export const getSignedDownloadUrl = async (
 ): Promise<string> => {
     const command = new GetObjectCommand({ Bucket: bucket, Key: key });
     return awsGetSignedUrl(getPresignClient(), command, { expiresIn: ttlSeconds });
+};
+
+export const getObjectStream = async (bucket: string, key: string): Promise<Readable> => {
+    const { Body } = await getStorageClient().send(new GetObjectCommand({ Bucket: bucket, Key: key }));
+    if (!(Body instanceof Readable)) {
+        throw new Error(`Object ${bucket}/${key} has no readable body`);
+    }
+    return Body;
 };
 
 export const headObject = async (bucket: string, key: string): Promise<boolean> => {

@@ -1,3 +1,4 @@
+import type { Readable } from 'node:stream';
 import type { UseCase } from '@/core/application/UseCase.js';
 import { NotFoundError } from '@/core/errors/AppError.js';
 import type { PackageRepository } from '@/modules/package/domain/PackageRepository.js';
@@ -5,23 +6,28 @@ import type { VersionRepository } from '@/modules/package/domain/VersionReposito
 import type { TarballStorage } from '@/modules/download/domain/TarballStorage.js';
 import { toFullName } from '@/modules/package/domain/packageName.js';
 
-export interface PresignTarballInput {
+export interface ResolveTarballInput {
     username: string;
     name: string;
     version: string;
     platform: string;
+    /** Whether the caller is downloading it, which counts as the package's activity; a lookup is not. */
+    download: boolean;
 }
 
-export interface PresignedTarball {
-    url: string;
+export interface ResolvedTarball {
     sha256: string;
     sizeBytes: number;
     platform: string;
+    /** A storage URL that serves it for a short while. */
+    presign(): Promise<string>;
+    /** Its bytes, read from storage. */
+    open(): Promise<Readable>;
 }
 
 const PRESIGN_TTL_SECONDS = 300;
 
-export class PresignTarballUseCase implements UseCase<PresignTarballInput, PresignedTarball> {
+export class ResolveTarballUseCase implements UseCase<ResolveTarballInput, ResolvedTarball> {
     constructor(
         private readonly packageRepository: PackageRepository,
         private readonly versionRepository: VersionRepository,
@@ -29,7 +35,7 @@ export class PresignTarballUseCase implements UseCase<PresignTarballInput, Presi
         private readonly tarballBucket: string
     ) {}
 
-    async execute({ username, name, version, platform }: PresignTarballInput): Promise<PresignedTarball> {
+    async execute({ username, name, version, platform, download }: ResolveTarballInput): Promise<ResolvedTarball> {
         const fullName = toFullName(username, name);
         const targetPackage = await this.packageRepository.findByFullName(fullName);
         if (!targetPackage) {
@@ -46,19 +52,16 @@ export class PresignTarballUseCase implements UseCase<PresignTarballInput, Presi
             throw new NotFoundError(`Platform ${platform} for ${fullName}@${version} not found`);
         }
 
-        const url = await this.tarballStorage.getSignedDownloadUrl(
-            this.tarballBucket,
-            platformEntry.key,
-            PRESIGN_TTL_SECONDS
-        );
-
-        await this.packageRepository.recordActivity(targetPackage.id, 1);
+        if (download) {
+            await this.packageRepository.recordActivity(targetPackage.id, 1);
+        }
 
         return {
-            url,
             sha256: platformEntry.sha256,
             sizeBytes: platformEntry.sizeBytes,
-            platform: platformEntry.tag
+            platform: platformEntry.tag,
+            presign: () => this.tarballStorage.getSignedDownloadUrl(this.tarballBucket, platformEntry.key, PRESIGN_TTL_SECONDS),
+            open: () => this.tarballStorage.openDownloadStream(this.tarballBucket, platformEntry.key)
         };
     }
 }

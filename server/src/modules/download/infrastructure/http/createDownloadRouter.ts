@@ -3,7 +3,7 @@ import { asyncHandler } from '@/core/http/asyncHandler.js';
 import type { PackageRepository } from '@/modules/package/domain/PackageRepository.js';
 import type { VersionRepository } from '@/modules/package/domain/VersionRepository.js';
 import type { TarballStorage } from '@/modules/download/domain/TarballStorage.js';
-import { PresignTarballUseCase } from '@/modules/download/application/PresignTarballUseCase.js';
+import { ResolveTarballUseCase } from '@/modules/download/application/ResolveTarballUseCase.js';
 import { DownloadController } from '@/modules/download/infrastructure/http/DownloadController.js';
 
 export interface DownloadRouterDependencies {
@@ -17,7 +17,7 @@ export const createDownloadRouter = (dependencies: DownloadRouterDependencies): 
     const { packageRepository, versionRepository, tarballStorage, tarballBucket } = dependencies;
 
     const controller = new DownloadController(
-        new PresignTarballUseCase(packageRepository, versionRepository, tarballStorage, tarballBucket)
+        new ResolveTarballUseCase(packageRepository, versionRepository, tarballStorage, tarballBucket)
     );
 
     const router = Router();
