@@ -9,21 +9,26 @@ import { createAppRouters } from '@/core/composition/createAppRouters.js';
 
 const allowedOrigins = new Set(corsOrigins);
 
-const corsMiddleware = cors({
-    credentials: false,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Origin', 'Content-Type', 'Accept', 'Authorization'],
-    origin: (origin, callback) => {
-        if (!origin) {
-            callback(null, true);
-            return;
-        }
-        if (allowedOrigins.has(origin)) {
-            callback(null, true);
-            return;
-        }
-        callback(new Error('Not allowed by CORS'));
-    }
+const READ_METHODS = new Set(['GET', 'HEAD']);
+
+const isReadRequest = (request: Request): boolean => {
+    const method = request.method === 'OPTIONS'
+        ? String(request.headers['access-control-request-method'] ?? '').toUpperCase()
+        : request.method;
+    return READ_METHODS.has(method);
+};
+
+// Reading the registry is public and credential-free, so any origin may read it (a VOLT server
+// running in a browser installs plugins from its page's origin); publishing stays limited to the
+// configured origins.
+const corsMiddleware = cors((request, callback) => {
+    const origin = request.headers.origin;
+    callback(null, {
+        credentials: false,
+        methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+        allowedHeaders: ['Origin', 'Content-Type', 'Accept', 'Authorization'],
+        origin: !origin || isReadRequest(request as Request) || allowedOrigins.has(origin)
+    });
 });
 
 const skipJsonForMultipart = (
@@ -44,7 +49,8 @@ export const createApp = (): Application => {
     const routers = createAppRouters();
 
     app.set('trust proxy', 1);
-    app.use(helmet());
+    // Packages and tarballs are fetched cross-origin, including by cross-origin isolated pages.
+    app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
     app.use(corsMiddleware);
     app.use(pinoHttp({ logger }));
     app.use(skipJsonForMultipart(express.json({ limit: '10mb' })));
